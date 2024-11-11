@@ -1,37 +1,73 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Stack, useNavigation } from 'expo-router';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import '../global.css';
+import { Color } from '@/consts/colors';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Button, Modal, Text, View } from 'react-native';
+import { useState } from 'react';
+import { GoBackModal } from '@/components/modals/go-back-modals';
+import { SocketProvider } from '@/providers/socket-provider';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  if (!loaded) {
-    return null;
-  }
+  const handleBackPress = () => {
+    setModalVisible(true);
+  };
+
+  const confirmBackNavigation = () => {
+    setModalVisible(false);
+    navigation.goBack();
+  };
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <SocketProvider url={process.env.EXPO_PUBLIC_API_URL ?? ''}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            title: 'Nim Chat',
+            headerTitleAlign: 'center',
+            headerStyle: { backgroundColor: Color.headerColor },
+            headerTitleStyle: {
+              color: Color.headerTitleColor,
+              fontWeight: '900',
+            },
+          }}
+        />
+        <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
+        <Stack.Screen
+          name="chat"
+          options={{
+            title: 'Nim Chat',
+            headerTitleAlign: 'center',
+            headerStyle: { backgroundColor: Color.headerColor },
+            headerTitleStyle: {
+              color: Color.headerTitleColor,
+              fontWeight: '900',
+            },
+            headerLeft: () => (
+              <Ionicons
+                name="arrow-back-sharp"
+                color={Color.headerTitleColor}
+                size={24}
+                onPress={handleBackPress}
+              />
+            ),
+          }}
+        />
       </Stack>
-    </ThemeProvider>
+
+      <GoBackModal
+        acceptTitle="Да"
+        rejectTitle="Нет"
+        confirmBackNavigation={confirmBackNavigation}
+        setModalVisible={setModalVisible}
+        modalVisible={modalVisible}
+        title="Вы уверены что хотите выйти из чата?"
+      />
+    </SocketProvider>
   );
 }

@@ -1,9 +1,9 @@
 import { Text, View } from 'react-native';
 
-export default function NotFound() {
+export default function Menu() {
   return (
     <View>
-      <Text>Not found</Text>
+      <Text>Menu</Text>
     </View>
   );
 }
