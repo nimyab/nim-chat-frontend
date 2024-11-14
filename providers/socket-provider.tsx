@@ -3,10 +3,14 @@ import { useSocket } from '@/socket/hooks/use-socket';
 import { createContext, useCallback, useEffect, useMemo } from 'react';
 import { SOCKET_EVENTS } from '@/socket/socket.events';
 import { SearchChatRequest } from '@/socket/types';
+import { useCurrentChat } from '@/store/current-chat.store';
 
 type SocketContextData = {
   socket: Socket | undefined;
   senderId: string | undefined;
+  searchChat: (data: SearchChatRequest) => void;
+  exitOnChat: (data: { chatId: string }) => void;
+  stopSearchChat: () => void;
 };
 
 export const socketContext = createContext({} as SocketContextData);
@@ -21,40 +25,42 @@ type SocketProviderProps = {
 
 export const SocketProvider = ({ url, children }: SocketProviderProps) => {
   const { socket } = useSocket({ url });
+  const resetMessages = useCurrentChat.use.resetMessages();
+  const setChatId = useCurrentChat.use.setChatId();
 
-  const searchChat = useCallback(
-    (data: SearchChatRequest) => {
-      if (!socket) return;
-      socket.emit(SOCKET_EVENTS.SEARCH_CHAT, data);
-    },
-    [socket]
-  );
+  const searchChat = (data: SearchChatRequest) => {
+    if (!socket) return;
+    socket.emit(SOCKET_EVENTS.SEARCH_CHAT, data);
+  };
 
-  const exitOnChat = useCallback(
-    (data: { chatId: string }) => {
-      if (!socket) return;
-      socket.emit(SOCKET_EVENTS.STOP_SEARCH_CHAT, data);
-    },
-    [socket]
-  );
+  const exitOnChat = (data: { chatId: string }) => {
+    if (!socket) return;
+    socket.emit(SOCKET_EVENTS.STOP_SEARCH_CHAT, data);
+  };
 
-  const stopSearchChat = useCallback(() => {
+  const stopSearchChat = () => {
     if (!socket) return;
     socket.emit(SOCKET_EVENTS.STOP_SEARCH_CHAT);
-  }, [socket]);
+  };
 
   useEffect(() => {
     if (!socket) return;
 
     socket.on(
       SOCKET_EVENTS.STOP_SEARCH_CHAT,
-      ({ message }: { message: string }) => {}
+      ({ message }: { message: string }) => {
+        resetMessages();
+        setChatId(null);
+      }
     );
-    socket.on(SOCKET_EVENTS.FOUND_CHAT, ({ chatId }: { chatId: string }) => {});
-    socket.on(
-      SOCKET_EVENTS.EXIT_ON_CHAT,
-      ({ chatId }: { chatId: string }) => {}
-    );
+    socket.on(SOCKET_EVENTS.FOUND_CHAT, ({ chatId }: { chatId: string }) => {
+      resetMessages();
+      setChatId(chatId);
+    });
+    socket.on(SOCKET_EVENTS.EXIT_ON_CHAT, ({ chatId }: { chatId: string }) => {
+      resetMessages();
+      setChatId(null);
+    });
     socket.on(SOCKET_EVENTS.SEARCH_CHAT, () => {});
 
     return () => {
@@ -65,8 +71,14 @@ export const SocketProvider = ({ url, children }: SocketProviderProps) => {
     };
   }, []);
 
-  const contextValue = useMemo(
-    () => ({ socket, senderId: socket?.id } as SocketContextData),
+  const contextValue: SocketContextData = useMemo(
+    () => ({
+      socket,
+      senderId: socket?.id,
+      searchChat,
+      exitOnChat,
+      stopSearchChat,
+    }),
     [socket]
   );
 

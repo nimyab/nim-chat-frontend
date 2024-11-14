@@ -3,12 +3,22 @@ import { create } from 'zustand';
 import { Message } from '@/type/message';
 
 type CurrentChatStore = {
+  chatId: string | null;
+  setChatId: (newChatId: string | null) => void;
   messages: Message[];
+  resetMessages: () => void;
   addMessage: (message: Message) => void;
 };
 
 const useCurrentChatBase = create<CurrentChatStore>((set, get) => ({
-  messages: [{ id: '1', sender: '123', text: 'text' }],
+  messages: [],
+  chatId: null,
+  setChatId(newChatId) {
+    set(() => ({ chatId: newChatId }));
+  },
+  resetMessages() {
+    set(() => ({ messages: [] }));
+  },
   addMessage(message) {
     set(({ messages }) => ({ messages: [message, ...messages] }));
   },
