@@ -1,4 +1,3 @@
-import { logger } from '@/utils/logger';
 import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 
