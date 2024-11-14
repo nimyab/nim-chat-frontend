@@ -33,6 +33,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     });
 
     return () => {
+      socket.emit(SOCKET_EVENTS.EXIT_ON_CHAT)
       socket.off(SOCKET_EVENTS.SEND_MESSAGE);
     };
   }, [socket]);

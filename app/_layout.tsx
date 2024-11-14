@@ -3,10 +3,10 @@ import { Stack, useNavigation } from 'expo-router';
 import '../global.css';
 import { Color } from '@/consts/colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Button, Modal, Text, View } from 'react-native';
 import { useState } from 'react';
 import { GoBackModal } from '@/components/modals/go-back-modals';
 import { SocketProvider } from '@/providers/socket-provider';
+import { env } from '@/utils/env';
 
 export default function RootLayout() {
   const navigation = useNavigation();
@@ -23,7 +23,7 @@ export default function RootLayout() {
   };
 
   return (
-    <SocketProvider url={process.env.EXPO_PUBLIC_API_URL ?? ''}>
+    <SocketProvider url={env.EXPO_PUBLIC_API_URL ?? ''}>
       <Stack>
         <Stack.Screen
           name="(tabs)"

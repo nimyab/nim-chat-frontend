@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import { useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 
@@ -11,7 +12,6 @@ export const useSocket = ({ url }: UseSocketProps) => {
   useEffect(() => {
     const socket = io(url, {
       reconnectionAttempts: Infinity,
-      withCredentials: true,
     });
 
     // TODO: сделать обработку ошибок
